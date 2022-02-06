@@ -47,3 +47,7 @@ for which you created the plan, unless you are especially careful. See Section 7
 FFTW_MEASURE | FFTW_DESTROY_INPUT becomes ior(FFTW_MEASURE, FFTW_DESTROY_
 INPUT). (You can also use ‘+’ as long as you don’t try to include a given flag more
 than once.)
+
+## Sources to be added
+
+- [Fortran Complex Array](https://www.physicsforums.com/threads/fortran-complex-array-assignment.592750/)
