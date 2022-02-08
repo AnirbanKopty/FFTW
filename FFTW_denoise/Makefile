@@ -14,6 +14,10 @@ gcc_compile:
 
 run:
 	./FFT_denoise.out
+	python3 plot.py
 
 gfortran_compile:
 	gfortran -L${lib_path} FFT_denoise.f03 -o FFT_denoise.out -lfftw3
+
+clean:
+	rm -rf *.out *.dat
