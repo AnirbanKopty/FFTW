@@ -17,6 +17,7 @@ program heat_eq
 
     REAL*8, PARAMETER :: PI = 4*ATAN(1.0)
     INTEGER, PARAMETER :: Nt = 100, Nx = 8                             ! Nt = t space discretization, Nx = x space discretization
+    !!!!!! For some Nt, Nx values the solution diverges!! Like taking (100, 16) like Nx > 2^3
     REAL*8, PARAMETER :: T = 10, L = 2*PI
     REAL*8, PARAMETER :: dt = REAL(T)/REAL(Nt), dx = REAL(L)/REAL(Nx), kappa = 1        !! Check CFL stability Condition for dt/dx : kappa*dt/dx <= 1 << Checked
 
