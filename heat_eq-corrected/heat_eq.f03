@@ -17,8 +17,8 @@ program heat_eq
 
     REAL*8, PARAMETER :: PI = 4*ATAN(1.0)
     INTEGER, PARAMETER :: Nt = 100, Nx = 8                             ! Nt = t space discretization, Nx = x space discretization
-    REAL*8, PARAMETER :: T = 1, L = 2*PI
-    REAL*8, PARAMETER :: dt = REAL(T)/REAL(Nt), dx = REAL(L)/REAL(Nx), kappa = 1        !! Check CFL stability Condition for dx/dt - not required for 1D FFTW
+    REAL*8, PARAMETER :: T = 10, L = 2*PI
+    REAL*8, PARAMETER :: dt = REAL(T)/REAL(Nt), dx = REAL(L)/REAL(Nx), kappa = 1        !! Check CFL stability Condition for dt/dx : kappa*dt/dx <= 1 << Checked
 
     INTEGER :: i, j                                                  ! parameter for iteration
     REAL*8 :: k(Nx)                                                  ! k space array
@@ -26,7 +26,7 @@ program heat_eq
     ! FFTW DataTypes
     TYPE(C_PTR) :: planFFT, planIFFT
     REAL(C_DOUBLE) :: theta(Nt, Nx) = 0.0                            ! the variable
-    COMPLEX(C_DOUBLE_COMPLEX) :: theta_hat(Nt, Nx) = 0.0             ! transformed variable   !!NOTE for err when = 0
+    COMPLEX(C_DOUBLE_COMPLEX) :: theta_hat(Nt, Nx) = 0.0             ! transformed variable
     ! (for r2c transformation in multi-dimension, first dimension of the complex data is chopped roughly in half)
     ! Not an issue here, since we'll be transforming 1D
 
@@ -37,9 +37,9 @@ program heat_eq
     theta(1,Nx) = 33.0
 
     ! Initial Config
-    OPEN(UNIT=9, FILE='start.dat', STATUS="REPLACE")
+    OPEN(UNIT=10, FILE='init_cond_x_space.dat', STATUS="REPLACE")
     do i=1, Nt
-        WRITE (9,*) theta(i,:)
+        WRITE (10,*) theta(i,:)
     end do
 
     ! k space array declaration - k = (2PI/L)*[0,1,2,...,0,...,2,1,0]
@@ -47,7 +47,7 @@ program heat_eq
         k(i) = (i-1) * 2*PI / L
     end do
     k(Nx/2 +1) = 0.0
-    do i = 1, Nx/2
+    do i = 1, Nx/2 -1
         k(Nx/2+1 +i) = -k(Nx/2+1 -i)
     end do
 
@@ -60,8 +60,8 @@ program heat_eq
     
     CALL fftw_execute_dft_r2c(planFFT, theta(1,:), theta_hat(1,:))
 
-    ! Initial Transformation
-    OPEN(UNIT=11, FILE='fftw_forward.dat', STATUS="REPLACE")
+    ! Initial Condition Transformation
+    OPEN(UNIT=11, FILE='init_cond_k_space.dat', STATUS="REPLACE")
     do i=1, Nt
         WRITE (11,*) theta_hat(i,:)
     end do
@@ -71,9 +71,15 @@ program heat_eq
     ! TODO: Now, we use the **Euler method** to iterate through the time to get the solution in k space
     ! The equation now: d/dt theta_hat = - k^2 theta_hat for each k value in k space
     do j = 1, Nx             ! Along k space
-        do i = 1, Nt     ! Along time dimension
+        do i = 1, Nt-1       ! Along time dimension
             theta_hat(i+1,j) = theta_hat(i,j) + dt * (-k(j)**2 * theta_hat(i,j) * kappa)            ! yn+1 = yn + dx*F(xn,yn)
         end do
+    end do
+
+    ! After ODE solve in k space
+    OPEN(UNIT=12, FILE='ode_solved_k_space.dat', STATUS="REPLACE")
+    do i=1, Nt
+        WRITE (12,*) theta_hat(i,:)
     end do
     
 
@@ -86,12 +92,12 @@ program heat_eq
     end do
     
     ! Normalization
-    theta = 1/REAL(Nt*Nx) * theta
+    theta = 1/REAL(Nx) * theta
 
     ! Got the result, now to export it
-    OPEN(UNIT=10, FILE='heat_sol.dat', STATUS="REPLACE")
+    OPEN(UNIT=13, FILE='heat_sol.dat', STATUS="REPLACE")
     do i=1, Nt
-        WRITE (10,*) theta(i,:)
+        WRITE (13,*) theta(i,:)
     end do
     
 

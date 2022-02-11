@@ -24,7 +24,7 @@ gfortran_compile:
 
 run:
 	./heat_eq.out
-	# python3 plot.py
+	python3 heatmap.py &
 
 clean:
 	rm -rf *.out *.dat
