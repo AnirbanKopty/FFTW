@@ -5,4 +5,5 @@ import seaborn as sb
 heat_sol = np.loadtxt("heat_sol.dat")
 
 sb.heatmap(heat_sol)
-plt.show()
+# plt.show()
+plt.savefig("heat_sol.png")
