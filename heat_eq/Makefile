@@ -17,7 +17,7 @@ run:
 	# python3 plot.py
 
 gfortran_compile:
-	gfortran -L${lib_path} ode.f03 heat_eq.f03 -o heat_eq.out -lfftw3
+	gfortran -L${lib_path} heat_eq_cmplx.f03 -o heat_eq.out -lfftw3
 
 clean:
 	rm -rf *.out *.dat
