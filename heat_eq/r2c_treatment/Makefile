@@ -5,7 +5,7 @@ lib_path = /home/anirbankopty/Softwares/FFTW/fftw-install/lib
 LIBS = -lfftw3 -lm
 
 # The files to be executed
-SOURCE = heat_eq_k_new
+SOURCE = heat_eq
 TARGET = heat_eq.out
 
 # SYNTAX
