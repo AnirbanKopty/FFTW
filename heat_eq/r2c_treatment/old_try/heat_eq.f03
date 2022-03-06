@@ -16,10 +16,11 @@ program heat_eq
     ! The file where the definitions are there for Fortran to C
 
     REAL*8, PARAMETER :: PI = 4*ATAN(1.0)
-    INTEGER, PARAMETER :: Nt = 1000, Nx = 32                             ! Nt = t space discretization, Nx = x space discretization
+    INTEGER, PARAMETER :: Nt = 250, Nx = 16                             ! Nt = t space discretization, Nx = x space discretization
     !!!!!! For some Nt, Nx values the solution diverges!! Like taking (100, 16) like Nx > 2^3
     REAL*8, PARAMETER :: L = 2*PI
-    REAL*8, PARAMETER :: dt = 0.001, dx = REAL(L)/REAL(Nx), kappa = 1        !! Check CFL stability Condition for dt/dx : kappa*dt/dx <= 1 i.e. dt<dx << Checked
+    REAL*8, PARAMETER :: dt = 0.01, dx = REAL(L)/REAL(Nx), kappa = 1        !! Check CFL stability Condition for dt/dx : kappa*dt/dx <= 1 << Checked
+    ! If CFL condition is not met, then it's found that the solution is not stable, it's fluctuating in the begnining, then reaches stability
 
     INTEGER :: i, j                                                  ! parameter for iteration
     REAL*8 :: k(Nx)                                                  ! k space array
@@ -33,8 +34,9 @@ program heat_eq
 
     
     !!!!!!!!!! Initial Condition
-    ! The initial distribution : theta(x,0) = 0 0 0 ... 100 100 ... 0 0 0 (i.e. a square in the centre)
-    theta(1, Nx/2-Nx/8:Nx/2+Nx/8) = 100.0
+    ! The initial distribution : theta(x,0) = 100 0 0 0 ... 0 0 33
+    theta(1,1) = 100.0
+    theta(1,Nx) = 33.0
 
     ! Initial Config
     OPEN(UNIT=10, FILE='init_cond_x_space.dat', STATUS="REPLACE")
@@ -61,7 +63,7 @@ program heat_eq
         do i = 1, Nx/2 -1
             k(Nx/2+1 +i) = -k(Nx/2+1 -i)
         end do
-    else                                ! odd N case (not needed really)
+    else                                ! odd N case
         do i = 1, (Nx+1)/2
             k(i) = (i-1) * 2*PI/L
         end do
