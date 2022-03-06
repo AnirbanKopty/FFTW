@@ -10,6 +10,7 @@ program heat_eq
     !!!!!!!!!! DECLARATION
     USE, INTRINSIC :: iso_c_binding     ! We can use C syntaxes for fftw now
     ! USE :: ode                        ! My own module for solving odes
+    USE freq_mod
 
     implicit none
     INCLUDE '/home/anirbankopty/Softwares/FFTW/fftw-install/include/fftw3.f03'
@@ -43,16 +44,41 @@ program heat_eq
         WRITE (10,*) theta(i,:)
     end do
 
+    !!? Source: https://stackoverflow.com/a/51232221/11348113
     ! k space array declaration - k = (2PI/L)*[0,1,2,...,0,...,-2,-1,-0]
-    do i = 1, Nx/2
-        k(i) = (i-1) * 2*PI / L
-    end do
-    k(Nx/2 +1) = 0.0
-    do i = 1, Nx/2 -1
-        k(Nx/2+1 +i) = -k(Nx/2+1 -i)
+    ! do i = 1, Nx/2
+    !     k(i) = (i-1) * 2*PI / L
+    ! end do
+    ! k(Nx/2 +1) = 0.0
+    ! do i = 1, Nx/2 -1
+    !     k(Nx/2+1 +i) = -k(Nx/2+1 -i)
+    ! end do
+
+    !!? Source: numpy.fft.fft.freq
+    if ( MODULO(Nx,2) == 0) then        ! even N case
+        do i = 1, Nx/2
+            k(i) = (i-1) * 2*PI/L
+        end do
+        k(Nx/2 +1) = - Nx/2
+        do i = 1, Nx/2 -1
+            k(Nx/2+1 +i) = -k(Nx/2+1 -i)
+        end do
+    else                                ! odd N case
+        do i = 1, (Nx+1)/2
+            k(i) = (i-1) * 2*PI/L
+        end do
+        do i = 1, (Nx+1)/2 -1
+            k((Nx+1)/2 +i) = -k((Nx+1)/2 -i+1)
+        end do
+    end if
+
+    ! !!! k space array declaration - k = (2PI/L)*[0,1,2,...,,...,-2,-1]
+    ! k = 2*PI* fftw_freq(Nx, dx)
+    ! !  printing the result
+    do i = 1, Nx
+        PRINT *, k(i)
     end do
 
-    
     !!!!!!!!!!!! Transformation of Initial Condition
     ! TODO: Time for FFTW to transform initial condition in k space
     planFFT = fftw_plan_dft_r2c_1d(Nx, theta(1,:), theta_hat(1,:), FFTW_ESTIMATE)    

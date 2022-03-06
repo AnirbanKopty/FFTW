@@ -39,26 +39,34 @@ program heat_eq
         WRITE (9,*) theta(i,:)
     end do
 
-    !? C Code for calculating frequencies
-    !     //Frequencies 
-    !     for (int i = 0; i< N / 2; ++i)
-    !         kx[i] = i / L;
-    !     kx[N / 2] = 0.00;
-    !     for (int i = 0; i < ((N / 2) - 1); ++i)
-    !         kx[i + 1 + N / 2] = -kx[N / 2 - i - 1];
-    
-    ! Calculating frequency domain
-    do i = 1, Ny/2
-        k(i) = (i-1) / L
-    end do
-    k(Ny/2 +1) = 0.0
-    do i = 1, Ny/2
-        k(Ny/2+1 +i) = -k(Ny/2+1 -i)
-    end do
+    !!? Source: https://stackoverflow.com/a/51232221/11348113
+    ! k space array declaration - k = (2PI/L)*[0,1,2,...,0,...,-2,-1,-0]
+    ! do i = 1, Nx/2
+    !     k(i) = (i-1) * 2*PI / L
+    ! end do
+    ! k(Nx/2 +1) = 0.0
+    ! do i = 1, Nx/2 -1
+    !     k(Nx/2+1 +i) = -k(Nx/2+1 -i)
+    ! end do
 
-    do i = 1, Ny
-        PRINT *, k(i)
-    end do
+    !!? Source: numpy.fft.fft.freq
+    ! k space array declaration - k = (2PI/L)*[0,1,2,...,,...,-2,-1]
+    if ( MODULO(Nx,2) == 0) then        ! even N case
+        do i = 1, Nx/2
+            k(i) = (i-1) * 2*PI/L
+        end do
+        k(Nx/2 +1) = - Nx/2
+        do i = 1, Nx/2 -1
+            k(Nx/2+1 +i) = -k(Nx/2+1 -i)
+        end do
+    else                                ! odd N case
+        do i = 1, (Nx+1)/2
+            k(i) = (i-1) * 2*PI/L
+        end do
+        do i = 1, (Nx+1)/2 -1
+            k((Nx+1)/2 +i) = -k((Nx+1)/2 -i+1)
+        end do
+    end if
 
     
     ! ! TODO: Time for FFTW to transform initial condition in k space
@@ -98,14 +106,19 @@ program heat_eq
     theta = 1.0/(Nx*Ny) * theta
     
     ! Got the result, now to export it
+
+    ! We can note here that the real space result has only the real part, which is expected
     OPEN(UNIT=10, FILE='heat_sol_cmplx.dat', STATUS="REPLACE")
     do i=1, Nx
-        WRITE (10,*) theta(i,:)
+        WRITE (10,*) (theta(i,:))
     end do
 
+
+    ! power spectrum output, in case needed
+    !(It's noted that some real part has negative sign, for which taking the magnitude is necessary)
     OPEN(UNIT=11, FILE='heat_sol_cmplx_ps.dat', STATUS="REPLACE")
     do i=1, Nx
-        WRITE (11,*) SQRT(REAL(theta(i,:))**2 + AIMAG(theta(i,:))**2)
+        WRITE (11,*) SQRT(REAL(theta(i,:))**2 + AIMAG(theta(i,:))**2 )
     end do
     
 
@@ -119,15 +132,3 @@ end program heat_eq
 ! Because there, the nabla^2 is found by finite difference method, which has a O(x^2) error, which is not here
 
 ! So, we would rather use RK Method here for better accuracy in time derivative (1st trial : Euler Method)
-
-!? C Code for calculating frequencies
-!     //Frequencies 
-!     for (int i = 0; i< N / 2; ++i) {
-!         kx[i] = i / L;
-!     }
-
-!     kx[N / 2] = 0.00;
-
-!     for (int i = 0; i < ((N / 2) - 1); ++i) {
-!         kx[i + 1 + N / 2] = -kx[N / 2 - i - 1];
-!     }

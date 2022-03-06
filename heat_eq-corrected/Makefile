@@ -2,6 +2,11 @@
 
 include_path = /home/anirbankopty/Softwares/FFTW/fftw-install/include
 lib_path = /home/anirbankopty/Softwares/FFTW/fftw-install/lib
+LIBS = -lfftw3 -lm
+
+# The files to be executed
+SOURCE = heat_eq_k_new
+TARGET = heat_eq.out
 
 # SYNTAX
 # target: pre-action
@@ -14,13 +19,13 @@ g+: g++_compile run
 gfortran: gfortran_compile run
 
 gcc_compile:
-	gcc -I${include_path} -L${lib_path} heat_eq.c -o heat_eq.out -lfftw3 -lm
+	gcc -I${include_path} -L${lib_path} $(SOURCE).c -o $(TARGET) $(LIBS)
 
 g++_compile:
-	g++ -I${include_path} -L${lib_path} heat_eq.cpp -o heat_eq.out -lfftw3 -lm
+	g++ -I${include_path} -L${lib_path} $(SOURCE).cpp -o $(TARGET) $(LIBS)
 
 gfortran_compile:
-	gfortran -L${lib_path} heat_eq.f03 -o heat_eq.out -lfftw3
+	gfortran -L${lib_path} $(SOURCE).f03 -o $(TARGET) $(LIBS)
 
 run:
 	./heat_eq.out
@@ -28,3 +33,6 @@ run:
 
 clean:
 	rm -rf *.out *.dat
+
+cleanall: clean
+	rm -rf *.png
